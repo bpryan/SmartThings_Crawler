@@ -9,13 +9,15 @@ BASE_URL = 'https://community.smartthings.com'
 
 
 #Selenium will load the page contents...
-browser = webdriver.Firefox()
+profile = webdriver.FirefoxProfile()
+profile.set_preference('general.useragent.override', 'crawler')
+browser = webdriver.Firefox(profile)
 browser.get('https://community.smartthings.com/c/projects-stories')
 
 length_of_page = browser.execute_script('window.scrollTo(0, document.body.scrollHeight);var length_of_page=document.body.scrollHeight;return length_of_page;')
 match = False
 page_count = 0
-max_page = 3
+max_page = 1
 while match == False:
     #last_count = length_of_page
     page_count += 1
@@ -25,20 +27,23 @@ while match == False:
     if page_count == max_page:
         match = True
 
-source_data = browser.page_source
+html_source = browser.page_source
+file = open('selenium_html.txt', 'w')
+file.write(html_source)
 #print(source_data)
 
 # NOTE: Selenium works to load page data and output source, but now I need to find a way to feed the source to beautiful soup so that it can crawl for links.
 
 
-headers = {"User-Agent": "Research User-Agent"}
-page_response = requests.get(CRAWLER_URL, timeout=5, headers=headers)
+# headers = {"User-Agent": "Research User-Agent"}
+# page_response = requests.get(CRAWLER_URL, timeout=5, headers=headers)
 
 # content = BeautifulSoup(source_data, 'html.parser')
-page = requests.get(CRAWLER_URL, timeout = 5)
-if page.status_code == 200:
-    print('URL: ', CRAWLER_URL, '\nRequest Successful!')
-content = BeautifulSoup(page.content, 'html.parser')
+# page = requests.get(CRAWLER_URL, timeout = 5)
+# if page.status_code == 200:
+#     print('URL: ', CRAWLER_URL, '\nRequest Successful!')
+#content = BeautifulSoup(page.content, 'html.parser')
+content = BeautifulSoup(html_source, 'html.parser')
 
 project_urls = []
 page_links = content.find_all(class_="page-links")
@@ -69,7 +74,7 @@ print(counter)
 with open('output-urls.txt','a') as to_write:
     github_urls = []
     for k in project_urls: # TAB EVERYTHING BELOW THIS
-        headers = {"User-Agent": "Research User-Agent"}
+        headers = {"crawler": "Research Crawler"}
         page_response = requests.get(k, timeout=5, headers=headers)
 
         page = requests.get(k, timeout = 5)
@@ -89,4 +94,4 @@ with open('output-urls.txt','a') as to_write:
 
 # Get list of all the links --> print it out.
 # Make it unique set(listName)
-# Lab: 1 - 25 - 34
+
